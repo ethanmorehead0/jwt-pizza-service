@@ -91,9 +91,9 @@ test('create a new franchise store', async () => {
     const franchiseID = 45;
     const createRes = await request(app).put('/api/auth').send({ email: adminUser.email, password: adminUser.password });
     const franchiseData = {stores: [], id: franchiseID, name: randomName(), admins: [{email: franUser.email, id: franUser.id, name: franUser.name}]};
-    const franchiseCreation = await request(app).post('/api/franchise').set('Authorization', `Bearer ${createRes.body.token}`).send(franchiseData);
+    await request(app).post('/api/franchise').set('Authorization', `Bearer ${createRes.body.token}`).send(franchiseData);
 
-    const logResFran = await request(app).put('/api/auth').send({ email: franUser.email, password: franUser.password });
+    await request(app).put('/api/auth').send({ email: franUser.email, password: franUser.password });
     const franchiseStoreData = {id: "", name: "f4"};
     const createFranchiseStoreRes = await request(app).post(`/api/franchise/${franchiseID}/store`).set('Authorization', `Bearer ${createRes.body.token}`).send(franchiseStoreData);
     //const createFranchiseStoreResFran = await request(app).post(`/api/franchise/${franchiseID}/store`).set('Authorization', `Bearer ${createRes.body.token}`).send(franchiseStoreData);
@@ -107,11 +107,11 @@ test('create a new franchise store', async () => {
     const franchiseID = 45;
     const createRes = await request(app).put('/api/auth').send({ email: adminUser.email, password: adminUser.password });
     const franchiseData = {stores: [], id: franchiseID, name: randomName(), admins: [{email: franUser.email, id: franUser.id, name: franUser.name}]};
-    const franchiseCreation = await request(app).post('/api/franchise').set('Authorization', `Bearer ${createRes.body.token}`).send(franchiseData);
+    await request(app).post('/api/franchise').set('Authorization', `Bearer ${createRes.body.token}`).send(franchiseData);
 
-    const logResFran = await request(app).put('/api/auth').send({ email: franUser.email, password: franUser.password });
+    await request(app).put('/api/auth').send({ email: franUser.email, password: franUser.password });
     const franchiseStoreData = {id: "", name: "f4"};
-    const createFranchiseStoreRes = await request(app).post(`/api/franchise/${franchiseID}/store`).set('Authorization', `Bearer ${createRes.body.token}`).send(franchiseStoreData);
+    await request(app).post(`/api/franchise/${franchiseID}/store`).set('Authorization', `Bearer ${createRes.body.token}`).send(franchiseStoreData);
     //const createFranchiseStoreResFran = await request(app).post(`/api/franchise/${franchiseID}/store`).set('Authorization', `Bearer ${createRes.body.token}`).send(franchiseStoreData);
     //expect(createFranchiseStoreResFran.status).toBe(200);
     const deleteFranchiseStoreRes = await request(app).delete(`/api/franchise/${franchiseID}/store/1`).set('Authorization', `Bearer ${createRes.body.token}`);
