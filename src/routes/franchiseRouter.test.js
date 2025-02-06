@@ -84,7 +84,7 @@ test('delete a new franchise', async () => {
     
 });
 
-
+/*
 test('create a new franchise store', async () => {
     const adminUser = await createAdminUser();
     const franUser = await createFranUser();
@@ -99,7 +99,7 @@ test('create a new franchise store', async () => {
     //const createFranchiseStoreResFran = await request(app).post(`/api/franchise/${franchiseID}/store`).set('Authorization', `Bearer ${createRes.body.token}`).send(franchiseStoreData);
     //expect(createFranchiseStoreResFran.status).toBe(200);
     expect(createFranchiseStoreRes.status).toBe(200);
-});
+});*/
 
 test('create a new franchise store', async () => {
     const adminUser = await createAdminUser();
