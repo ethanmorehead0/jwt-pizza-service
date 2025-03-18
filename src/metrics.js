@@ -22,3 +22,12 @@ function reportMetrics() {
 
 // Report metrics every 5 seconds
 setInterval(reportMetrics, 5000);
+
+function track(route) {
+  return (req, res, next) => {
+    console.log(`Tracking route: ${route}`);
+    next();
+  };
+}
+
+module.exports = { track };
