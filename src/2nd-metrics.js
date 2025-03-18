@@ -1,18 +1,21 @@
+const os = require("os");
 const config = require("./config");
 
 let requests = 0;
 let latency = 0;
 
-setInterval(() => {
-  const cpuValue = Math.floor(Math.random() * 100) + 1;
-  sendMetricToGrafana("cpu", cpuValue, "gauge", "%");
+function getCpuUsagePercentage() {
+  const cpuUsage = os.loadavg()[0] / os.cpus().length;
+  return (cpuUsage * 100).toFixed(2);
+}
 
-  requests += Math.floor(Math.random() * 200) + 1;
-  sendMetricToGrafana("requests", requests, "sum", "1");
-
-  latency += Math.floor(Math.random() * 200) + 1;
-  sendMetricToGrafana("latency", latency, "sum", "ms");
-}, 1000);
+function getMemoryUsagePercentage() {
+  const totalMemory = os.totalmem();
+  const freeMemory = os.freemem();
+  const usedMemory = totalMemory - freeMemory;
+  const memoryUsage = (usedMemory / totalMemory) * 100;
+  return memoryUsage.toFixed(2);
+}
 
 function sendMetricToGrafana(metricName, metricValue, type, unit) {
   const metric = {
@@ -73,3 +76,31 @@ function sendMetricToGrafana(metricName, metricValue, type, unit) {
       console.error("Error pushing metrics:", error);
     });
 }
+
+// Report metrics every 5 seconds
+setInterval(() => {
+  const cpuValue = Math.floor(Math.random() * 100) + 1;
+  sendMetricToGrafana("cpu", cpuValue, "gauge", "%");
+
+  requests += Math.floor(Math.random() * 200) + 1;
+  sendMetricToGrafana("requests", requests, "sum", "1");
+
+  latency += Math.floor(Math.random() * 200) + 1;
+  sendMetricToGrafana("latency", latency, "sum", "ms");
+  sendMetricToGrafana("memory", getMemoryUsagePercentage(), "gauge", "%");
+  sendMetricToGrafana("cpu", getCpuUsagePercentage(), "gauge", "%");
+}, 5000);
+
+function track(route) {
+  return (req, res, next) => {
+    console.log(`Tracking route: ${route}`);
+
+    const metricName = `route_${route}_requests`;
+    requests += 1;
+    sendMetricToGrafana(metricName, requests, "sum", "1");
+
+    next();
+  };
+}
+
+module.exports = { track };
