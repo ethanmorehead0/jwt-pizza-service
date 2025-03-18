@@ -4,18 +4,18 @@ const config = require("./config");
 let requests = 0;
 let latency = 0;
 
-function getCpuUsagePercentage() {
-  const cpuUsage = os.loadavg()[0] / os.cpus().length;
-  return (cpuUsage * 100).toFixed(2);
-}
+// function getCpuUsagePercentage() {
+//   const cpuUsage = os.loadavg()[0] / os.cpus().length;
+//   return (cpuUsage * 100).toFixed(2);
+// }
 
-function getMemoryUsagePercentage() {
-  const totalMemory = os.totalmem();
-  const freeMemory = os.freemem();
-  const usedMemory = totalMemory - freeMemory;
-  const memoryUsage = (usedMemory / totalMemory) * 100;
-  return memoryUsage.toFixed(2);
-}
+// function getMemoryUsagePercentage() {
+//   const totalMemory = os.totalmem();
+//   const freeMemory = os.freemem();
+//   const usedMemory = totalMemory - freeMemory;
+//   const memoryUsage = (usedMemory / totalMemory) * 100;
+//   return memoryUsage.toFixed(2);
+// }
 
 function sendMetricToGrafana(metricName, metricValue, type, unit) {
   const metric = {
