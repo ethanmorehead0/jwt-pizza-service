@@ -1,6 +1,3 @@
-//probably here?
-app.use(metrics.requestTracker);
-
 const os = require("os");
 
 function getCpuUsagePercentage() {
