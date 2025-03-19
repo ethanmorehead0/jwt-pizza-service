@@ -75,3 +75,17 @@ function sendMetricToGrafana(metricName, metricValue, type, unit) {
       console.error("Error pushing metrics:", error);
     });
 }
+
+function track(route) {
+  return (req, res, next) => {
+    console.log(`Tracking route: ${route}`);
+
+    const metricName = `route_${route}_requests`;
+    requests += 1;
+    sendMetricToGrafana(metricName, requests, "sum", "1");
+
+    next();
+  };
+}
+
+module.exports = { track };
