@@ -1,20 +1,24 @@
 const config = require("./config");
-const fetch = require("node-fetch"); // Ensure node-fetch is imported
 
-let requests1 = 0;
-let latency = 0;
+const requests = {};
 
-setInterval(() => {
-  const cpuValue = Math.floor(Math.random() * 100) + 1;
-  sendMetricToGrafana("cpu", cpuValue, "gauge", "%");
+function track(endpoint) {
+  return (req, res, next) => {
+    requests[endpoint] = (requests[endpoint] || 0) + 1;
+    next();
+  };
+}
 
-  sendMetricToGrafana("requests", requests1, "sum", "1");
+// This will periodically send metrics to Grafana
+const timer = setInterval(() => {
+  Object.keys(requests).forEach((endpoint) => {
+    sendMetricToGrafana("requests", requests[endpoint], { endpoint });
+  });
+}, 10000);
 
-  latency += Math.floor(Math.random() * 200) + 1;
-  sendMetricToGrafana("latency", latency, "sum", "ms");
-}, 5000);
+function sendMetricToGrafana(metricName, metricValue, attributes) {
+  attributes = { ...attributes, source: config.source };
 
-function sendMetricToGrafana(metricName, metricValue, type, unit) {
   const metric = {
     resourceMetrics: [
       {
@@ -23,14 +27,17 @@ function sendMetricToGrafana(metricName, metricValue, type, unit) {
             metrics: [
               {
                 name: metricName,
-                unit: unit,
-                [type]: {
+                unit: "1",
+                sum: {
                   dataPoints: [
                     {
                       asInt: metricValue,
                       timeUnixNano: Date.now() * 1000000,
+                      attributes: [],
                     },
                   ],
+                  aggregationTemporality: "AGGREGATION_TEMPORALITY_CUMULATIVE",
+                  isMonotonic: true,
                 },
               },
             ],
@@ -40,31 +47,26 @@ function sendMetricToGrafana(metricName, metricValue, type, unit) {
     ],
   };
 
-  if (type === "sum") {
-    metric.resourceMetrics[0].scopeMetrics[0].metrics[0][
-      type
-    ].aggregationTemporality = "AGGREGATION_TEMPORALITY_CUMULATIVE";
-    metric.resourceMetrics[0].scopeMetrics[0].metrics[0][
-      type
-    ].isMonotonic = true;
-  }
+  Object.keys(attributes).forEach((key) => {
+    metric.resourceMetrics[0].scopeMetrics[0].metrics[0].sum.dataPoints[0].attributes.push(
+      {
+        key: key,
+        value: { stringValue: attributes[key] },
+      }
+    );
+  });
 
-  const body = JSON.stringify(metric);
-  fetch(`${config.metrics.url}`, {
+  fetch(`${config.url}`, {
     method: "POST",
-    body: body,
+    body: JSON.stringify(metric),
     headers: {
-      Authorization: `Bearer ${config.metrics.apiKey}`,
+      Authorization: `Bearer ${config.apiKey}`,
       "Content-Type": "application/json",
     },
   })
     .then((response) => {
       if (!response.ok) {
-        response.text().then((text) => {
-          console.error(
-            `Failed to push metrics data to Grafana: ${text}\n${body}`
-          );
-        });
+        console.error("Failed to push metrics data to Grafana");
       } else {
         console.log(`Pushed ${metricName}`);
       }
@@ -74,20 +76,4 @@ function sendMetricToGrafana(metricName, metricValue, type, unit) {
     });
 }
 
-function track(req, res, next) {
-  const start = process.hrtime();
-
-  res.on("finish", () => {
-    const [seconds, nanoseconds] = process.hrtime(start);
-    const duration = seconds * 1000 + nanoseconds / 1e6; // Convert to milliseconds
-
-    sendMetricToGrafana("request_duration", duration, "sum", "ms");
-    sendMetricToGrafana("request_count", 1, "sum", "1");
-  });
-
-  next();
-}
-
-module.exports = {
-  track,
-};
+module.exports = { track };
