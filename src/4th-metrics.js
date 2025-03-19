@@ -17,7 +17,7 @@ function getMemoryUsagePercentage() {
 
 let requests1 = 0;
 let requests = 0;
-requestsTypes = [0, 0, 0, 0]; //get, put, post, delete
+let requestsTypes = [0, 0, 0, 0]; //get, put, post, delete
 let latency = 0;
 
 setInterval(() => {
@@ -25,6 +25,8 @@ setInterval(() => {
   sendMetricToGrafana("cpu", cpuValue, "gauge", "%");
 
   sendMetricToGrafana("requests", requests1, "sum", "1");
+
+  sendMetricToGrafana("test", requests1, "sum", "1");
 
   latency += Math.floor(Math.random() * 200) + 1;
   sendMetricToGrafana("latency", latency, "sum", "ms");
@@ -94,56 +96,38 @@ function sendMetricToGrafana(metricName, metricValue, type, unit) {
     });
 }
 
-// function requestTracker() {
-//   sendMetricToGrafana("test", 100, "sum", "1");
-//   requests++;
-//   console.log(requests);
-//   return (req, res, next) => {
-//     const start = process.hrtime();
-//     switch (req.method) {
-//       case "GET":
-//         requestsTypes[0]++;
-//         break;
-//       case "PUT":
-//         requestsTypes[1]++;
-//         break;
-//       case "POST":
-//         requestsTypes[2]++;
-//         break;
-//       case "DELETE":
-//         requestsTypes[3]++;
-//         break;
-//     }
-//     res.on("finish", () => {
-//       const [seconds, nanoseconds] = process.hrtime(start);
-//       const duration = seconds * 1000 + nanoseconds / 1e6; // Convert to milliseconds
+function track(scope) {
+  return (req, res, next) => {
+    const start = process.hrtime();
 
-//       sendMetricToGrafana("request_duration", duration, "sum", "ms");
-//       sendMetricToGrafana("request_count", 1, "sum", "1");
-//     });
-
-//     next();
-//   };
-// }
-
-module.exports = {
-  requestTracker,
-};
-
-class Metrics {
-  track(scope) {
-    sendMetricToGrafana("test", 200, "sum", "1");
-    return (req, res, next) => {
-      if (scope === "all") {
-        const start = Date.now();
-        res.on("finish", () => {
-          const duration = Date.now() - start;
-          console.log(`Tracked: ${req.method} ${req.url} (${duration}ms)`);
-        });
+    res.on("finish", () => {
+      requests++;
+      switch (req.method) {
+        case "GET":
+          requestsTypes[0]++;
+          break;
+        case "PUT":
+          requestsTypes[1]++;
+          break;
+        case "POST":
+          requestsTypes[2]++;
+          break;
+        case "DELETE":
+          requestsTypes[3]++;
+          break;
       }
-      next();
-    };
-  }
+      const [seconds, nanoseconds] = process.hrtime(start);
+      const duration = seconds * 1000 + nanoseconds / 1e6; // Convert to milliseconds
+
+      sendMetricToGrafana("request_duration", duration, "sum", "ms");
+      sendMetricToGrafana("request_count", 1, "sum", "1");
+    });
+
+    next();
+  };
 }
 
-module.exports = new Metrics();
+module.exports = {
+  track,
+  request,
+};
