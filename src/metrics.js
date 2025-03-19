@@ -10,7 +10,7 @@ function track(endpoint) {
 }
 
 // This will periodically send metrics to Grafana
-const timer = setInterval(() => {
+setInterval(() => {
   Object.keys(requests).forEach((endpoint) => {
     sendMetricToGrafana("requests", requests[endpoint], { endpoint });
   });
