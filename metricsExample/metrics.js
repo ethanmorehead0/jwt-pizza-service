@@ -68,7 +68,7 @@ function sendMetricToGrafana(metricName, metricValue, type, unit) {
           );
         });
       } else {
-        console.log(`Pushed ${metricName} + ${body}`);
+        console.log(`Pushed ${metricName}`);
       }
     })
     .catch((error) => {
