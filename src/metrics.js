@@ -2,22 +2,22 @@ const config = require("./config");
 
 const os = require("os");
 
-function getCpuUsagePercentage() {
-  const cpuUsage = os.loadavg()[0] / os.cpus().length;
-  return cpuUsage.toFixed(2) * 100;
-}
+// function getCpuUsagePercentage() {
+//   const cpuUsage = os.loadavg()[0] / os.cpus().length;
+//   return cpuUsage.toFixed(2) * 100;
+// }
 
-function getMemoryUsagePercentage() {
-  const totalMemory = os.totalmem();
-  const freeMemory = os.freemem();
-  const usedMemory = totalMemory - freeMemory;
-  const memoryUsage = (usedMemory / totalMemory) * 100;
-  return memoryUsage.toFixed(2);
-}
+// function getMemoryUsagePercentage() {
+//   const totalMemory = os.totalmem();
+//   const freeMemory = os.freemem();
+//   const usedMemory = totalMemory - freeMemory;
+//   const memoryUsage = (usedMemory / totalMemory) * 100;
+//   return memoryUsage.toFixed(2);
+// }
 
 let requests1 = 0;
-let requests = 0;
-requestsTypes = [0, 0, 0, 0]; //get, put, post, delete
+// let requests = 0;
+// let requestsTypes = [0, 0, 0, 0]; //get, put, post, delete
 let latency = 0;
 
 setInterval(() => {
@@ -126,9 +126,9 @@ function sendMetricToGrafana(metricName, metricValue, type, unit) {
 //   };
 // }
 
-module.exports = {
-  requestTracker,
-};
+// module.exports = {
+//   requestTracker,
+// };
 
 class Metrics {
   track(scope) {
