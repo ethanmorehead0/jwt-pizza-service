@@ -15,22 +15,23 @@ function getMemoryUsagePercentage() {
   return memoryUsage.toFixed(2);
 }
 
+let requests1 = 0;
 let requests = 0;
+requestsTypes = [0, 0, 0, 0]; //get, put, post, delete
 let latency = 0;
 
 setInterval(() => {
   const cpuValue = Math.floor(Math.random() * 100) + 1;
   sendMetricToGrafana("cpu", cpuValue, "gauge", "%");
 
-  requests += Math.floor(Math.random() * 200) + 1;
-  sendMetricToGrafana("requests", requests, "sum", "1");
+  sendMetricToGrafana("requests", requests1, "sum", "1");
 
-  sendMetricToGrafana("test", requests, "sum", "1");
+  sendMetricToGrafana("test", requests1, "sum", "1");
 
   latency += Math.floor(Math.random() * 200) + 1;
   sendMetricToGrafana("latency", latency, "sum", "ms");
 
-  sendMetricToGrafana("CPU", getCpuUsagePercentage(), "sum", "%");
+  //   sendMetricToGrafana("CPU", getCpuUsagePercentage(), "sum", "%");
   //sendMetricToGrafana("MemoryUsage", getMemoryUsagePercentage(), "gauge", "%");
   //sendMetricToGrafana("MemoryUsage", parseFloat(getMemoryUsagePercentage()), "gauge", "%");
 }, 5000);
@@ -100,6 +101,21 @@ function track(scope) {
     const start = process.hrtime();
 
     res.on("finish", () => {
+      requests++;
+      switch (req.method) {
+        case "GET":
+          requestsTypes[0]++;
+          break;
+        case "PUT":
+          requestsTypes[1]++;
+          break;
+        case "POST":
+          requestsTypes[2]++;
+          break;
+        case "DELETE":
+          requestsTypes[3]++;
+          break;
+      }
       const [seconds, nanoseconds] = process.hrtime(start);
       const duration = seconds * 1000 + nanoseconds / 1e6; // Convert to milliseconds
 
