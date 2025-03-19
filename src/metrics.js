@@ -1,6 +1,6 @@
 const config = require("./config");
 
-const os = require("os");
+// const os = require("os");
 
 // function getCpuUsagePercentage() {
 //   const cpuUsage = os.loadavg()[0] / os.cpus().length;
