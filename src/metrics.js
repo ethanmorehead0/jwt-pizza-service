@@ -1,23 +1,7 @@
 const config = require("./config");
-
-// const os = require("os");
-
-// function getCpuUsagePercentage() {
-//   const cpuUsage = os.loadavg()[0] / os.cpus().length;
-//   return cpuUsage.toFixed(2) * 100;
-// }
-
-// function getMemoryUsagePercentage() {
-//   const totalMemory = os.totalmem();
-//   const freeMemory = os.freemem();
-//   const usedMemory = totalMemory - freeMemory;
-//   const memoryUsage = (usedMemory / totalMemory) * 100;
-//   return memoryUsage.toFixed(2);
-// }
+const fetch = require("node-fetch"); // Ensure node-fetch is imported
 
 let requests1 = 0;
-// let requests = 0;
-// let requestsTypes = [0, 0, 0, 0]; //get, put, post, delete
 let latency = 0;
 
 setInterval(() => {
@@ -28,10 +12,6 @@ setInterval(() => {
 
   latency += Math.floor(Math.random() * 200) + 1;
   sendMetricToGrafana("latency", latency, "sum", "ms");
-
-  //   sendMetricToGrafana("CPU", getCpuUsagePercentage(), "sum", "%");
-  //sendMetricToGrafana("MemoryUsage", getMemoryUsagePercentage(), "gauge", "%");
-  //sendMetricToGrafana("MemoryUsage", parseFloat(getMemoryUsagePercentage()), "gauge", "%");
 }, 5000);
 
 function sendMetricToGrafana(metricName, metricValue, type, unit) {
@@ -94,56 +74,20 @@ function sendMetricToGrafana(metricName, metricValue, type, unit) {
     });
 }
 
-// function requestTracker() {
-//   sendMetricToGrafana("test", 100, "sum", "1");
-//   requests++;
-//   console.log(requests);
-//   return (req, res, next) => {
-//     const start = process.hrtime();
-//     switch (req.method) {
-//       case "GET":
-//         requestsTypes[0]++;
-//         break;
-//       case "PUT":
-//         requestsTypes[1]++;
-//         break;
-//       case "POST":
-//         requestsTypes[2]++;
-//         break;
-//       case "DELETE":
-//         requestsTypes[3]++;
-//         break;
-//     }
-//     res.on("finish", () => {
-//       const [seconds, nanoseconds] = process.hrtime(start);
-//       const duration = seconds * 1000 + nanoseconds / 1e6; // Convert to milliseconds
+function track(req, res, next) {
+  const start = process.hrtime();
 
-//       sendMetricToGrafana("request_duration", duration, "sum", "ms");
-//       sendMetricToGrafana("request_count", 1, "sum", "1");
-//     });
+  res.on("finish", () => {
+    const [seconds, nanoseconds] = process.hrtime(start);
+    const duration = seconds * 1000 + nanoseconds / 1e6; // Convert to milliseconds
 
-//     next();
-//   };
-// }
+    sendMetricToGrafana("request_duration", duration, "sum", "ms");
+    sendMetricToGrafana("request_count", 1, "sum", "1");
+  });
 
-// module.exports = {
-//   requestTracker,
-// };
-
-class Metrics {
-  track(scope) {
-    sendMetricToGrafana("test", 200, "sum", "1");
-    return (req, res, next) => {
-      if (scope === "all") {
-        const start = Date.now();
-        res.on("finish", () => {
-          const duration = Date.now() - start;
-          console.log(`Tracked: ${req.method} ${req.url} (${duration}ms)`);
-        });
-      }
-      next();
-    };
-  }
+  next();
 }
 
-module.exports = new Metrics();
+module.exports = {
+  track,
+};

@@ -8,7 +8,7 @@ const metrics = require("./metrics.js");
 
 const app = express();
 app.use(express.json());
-app.use(metrics.track("all"));
+app.use(metrics.track);
 // app.use(metrics.requestTracker);
 app.use(setAuthUser);
 
