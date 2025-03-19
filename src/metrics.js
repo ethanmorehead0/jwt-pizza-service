@@ -1,5 +1,20 @@
 const config = require("./config");
 
+const os = require("os");
+
+function getCpuUsagePercentage() {
+  const cpuUsage = os.loadavg()[0] / os.cpus().length;
+  return cpuUsage.toFixed(2) * 100;
+}
+
+function getMemoryUsagePercentage() {
+  const totalMemory = os.totalmem();
+  const freeMemory = os.freemem();
+  const usedMemory = totalMemory - freeMemory;
+  const memoryUsage = (usedMemory / totalMemory) * 100;
+  return memoryUsage.toFixed(2);
+}
+
 let requests = 0;
 let latency = 0;
 
@@ -14,7 +29,11 @@ setInterval(() => {
 
   latency += Math.floor(Math.random() * 200) + 1;
   sendMetricToGrafana("latency", latency, "sum", "ms");
-}, 1000);
+
+  sendMetricToGrafana("CPU", getCpuUsagePercentage(), "sum", "%");
+  //sendMetricToGrafana("MemoryUsage", getMemoryUsagePercentage(), "gauge", "%");
+  //sendMetricToGrafana("MemoryUsage", parseFloat(getMemoryUsagePercentage()), "gauge", "%");
+}, 5000);
 
 function sendMetricToGrafana(metricName, metricValue, type, unit) {
   const metric = {
@@ -76,27 +95,22 @@ function sendMetricToGrafana(metricName, metricValue, type, unit) {
     });
 }
 
-function track(route) {
-  const cpuValue = Math.floor(Math.random() * 100) + 1;
-  sendMetricToGrafana("cpu", cpuValue, "gauge", "%");
-
-  requests += Math.floor(Math.random() * 200) + 1;
-  sendMetricToGrafana("requests", requests, "sum", "1");
-
-  sendMetricToGrafana("test", requests, "sum", "1");
-
-  latency += Math.floor(Math.random() * 200) + 1;
-  sendMetricToGrafana("latency", latency, "sum", "ms");
-
+function track(scope) {
   return (req, res, next) => {
-    console.log(`Tracking route: ${route}`);
+    const start = process.hrtime();
 
-    const metricName = `route_${route}_requests`;
-    requests += 1;
-    sendMetricToGrafana(metricName, requests, "sum", "1");
+    res.on("finish", () => {
+      const [seconds, nanoseconds] = process.hrtime(start);
+      const duration = seconds * 1000 + nanoseconds / 1e6; // Convert to milliseconds
+
+      sendMetricToGrafana("request_duration", duration, "sum", "ms");
+      sendMetricToGrafana("request_count", 1, "sum", "1");
+    });
 
     next();
   };
 }
 
-module.exports = { track };
+module.exports = {
+  track,
+};
