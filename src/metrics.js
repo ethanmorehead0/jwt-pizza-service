@@ -10,6 +10,8 @@ setInterval(() => {
   requests += Math.floor(Math.random() * 200) + 1;
   sendMetricToGrafana("requests", requests, "sum", "1");
 
+  sendMetricToGrafana("test", requests, "sum", "1");
+
   latency += Math.floor(Math.random() * 200) + 1;
   sendMetricToGrafana("latency", latency, "sum", "ms");
 }, 1000);
@@ -50,11 +52,11 @@ function sendMetricToGrafana(metricName, metricValue, type, unit) {
   }
 
   const body = JSON.stringify(metric);
-  fetch(`${config.url}`, {
+  fetch(`${config.metrics.url}`, {
     method: "POST",
     body: body,
     headers: {
-      Authorization: `Bearer ${config.apiKey}`,
+      Authorization: `Bearer ${config.metrics.apiKey}`,
       "Content-Type": "application/json",
     },
   })

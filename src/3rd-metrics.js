@@ -10,8 +10,6 @@ setInterval(() => {
   requests += Math.floor(Math.random() * 200) + 1;
   sendMetricToGrafana("requests", requests, "sum", "1");
 
-  sendMetricToGrafana("test", requests, "sum", "1");
-
   latency += Math.floor(Math.random() * 200) + 1;
   sendMetricToGrafana("latency", latency, "sum", "ms");
 }, 1000);
@@ -68,7 +66,7 @@ function sendMetricToGrafana(metricName, metricValue, type, unit) {
           );
         });
       } else {
-        console.log(`Pushed ${metricName} + ${body}`);
+        console.log(`Pushed ${metricName}`);
       }
     })
     .catch((error) => {
