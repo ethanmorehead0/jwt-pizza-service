@@ -77,6 +77,18 @@ function sendMetricToGrafana(metricName, metricValue, type, unit) {
 }
 
 function track(route) {
+  setInterval(() => {
+    const cpuValue = Math.floor(Math.random() * 100) + 1;
+    sendMetricToGrafana("cpu", cpuValue, "gauge", "%");
+
+    requests += Math.floor(Math.random() * 200) + 1;
+    sendMetricToGrafana("requests", requests, "sum", "1");
+
+    sendMetricToGrafana("test", requests, "sum", "1");
+
+    latency += Math.floor(Math.random() * 200) + 1;
+    sendMetricToGrafana("latency", latency, "sum", "ms");
+  }, 1000);
   return (req, res, next) => {
     console.log(`Tracking route: ${route}`);
 
